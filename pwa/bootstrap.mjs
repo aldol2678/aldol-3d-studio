@@ -14,6 +14,13 @@ install?.addEventListener('click',async()=>{
  install.hidden=true;
 });
 window.addEventListener('appinstalled',()=>{promptEvent=null;if(install)install.hidden=true;});
+
+const drawer=document.getElementById('pwa-assets-toggle');
+drawer?.addEventListener('click',()=>{
+ const expanded=drawer.getAttribute('aria-expanded')==='true';
+ drawer.setAttribute('aria-expanded',String(!expanded));
+ document.body.classList.toggle('pwa-asset-drawer-open',!expanded);
+});
 try{
  await import('/pwa/browser-api.mjs');
  await import('/studio.js');
