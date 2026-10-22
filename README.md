@@ -18,7 +18,7 @@
 | HTTP MCP preflight | Read-only Streamable HTTP JSON-RPC at **127.0.0.1 only**, `POST /mcp` | Public HTTPS listener, OAuth 2.1, ChatGPT plugin installation |
 | Mobile browser QA | Chromium touch emulation at common mobile viewports | Physical Android/iOS hardware certification |
 
-The motion tool names are `motion_library`, `motion_validate`, `motion_import`, `motion_retarget`, `motion_blend`, and `motion_export`. The latter two mutate an in-memory library only when invoked through the write-enabled **local stdio** server.
+The motion tool names are `motion_library`, `motion_validate`, `motion_import`, `motion_retarget`, `motion_blend`, and `motion_export`. Only `motion_import` and `motion_retarget` mutate the in-memory library, and they are available only through the write-enabled **local stdio** server.
 
 ## Get started (Node.js 20+)
 
