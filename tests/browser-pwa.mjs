@@ -30,7 +30,7 @@ try{
  for(const path of ['/sw.js','/icons/icon-192.png','/icons/icon-512.png','/vendor/playcanvas.mjs']){
   const r=await page.request.get(base+path);assert.equal(r.status(),200,path);
  }
- await page.getByRole('button',{name:/상자 배치/}).first().click();
+ await page.locator('#add-box').click();
  const canvas=page.locator('#canvas');
  await canvas.tap({position:{x:110,y:90}});
  await page.waitForFunction(()=>window.__ALDOL_PWA__.readScene().nodes.length===1);
@@ -44,9 +44,8 @@ try{
  assert.equal(url.sceneId,'aldol.studio.pwa');
  const invalid=await page.evaluate(async()=>{const r=await fetch('/api/command',{method:'POST',body:JSON.stringify({operation:'evil.exec',commandId:'bad',expectedRevision:window.__ALDOL_PWA__.readScene().revisionToken,payload:{}})});return r.json();});
  assert.equal(invalid.status,'rejected');
- await page.evaluate(()=>window.__ALDOL_PWA__.exportBundle());
- const download=await page.waitForEvent('download',{timeout:10000}).catch(()=>null);
- // Manual backup should be callable; download event is not guaranteed if triggered before waiting.
+ const [download]=await Promise.all([page.waitForEvent('download',{timeout:10000}),page.evaluate(()=>window.__ALDOL_PWA__.exportBundle())]);
+ assert.equal(download.suggestedFilename(),'aldol-studio-scene-assets.zip');
  assert.equal(errors.length,0,'Browser errors: '+JSON.stringify(errors));
  await page.evaluate(()=>navigator.serviceWorker.ready);
  await context.setOffline(true);
