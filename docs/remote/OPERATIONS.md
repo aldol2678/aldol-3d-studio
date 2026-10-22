@@ -60,3 +60,11 @@ No paid resource created. Existing Supabase database/storage and Vercel function
 - https://supabase.com/docs/guides/auth/oauth-server
 - https://supabase.com/docs/guides/auth/oauth-server/oauth-flows
 - https://supabase.com/changelog?tags=auth
+
+## Deployed API evidence
+
+The Preview on `e945ac1` passed 19 live API tests with two isolated QA accounts: actual Supabase password login, create/get/save, idempotency, stale version rejection, cross-user denial, strict schema, scene read, persisted motion library read, undo/redo, unauthenticated API/MCP denial, disabled-MCP rejection and session logout revocation. These are first-party API tests, not OAuth or ChatGPT calls. No emails were sent; credentials/tokens are excluded from evidence. See `live-api-qa.json`.
+
+Deployed mobile browser UI QA also passed login, opt-in save, scene identity readback, offline editing and online-return automatic synchronization status. This uses Chromium emulation, not a physical Android device. See `live-pwa-qa.json`.
+
+After reconnection, real database readback confirmed v3 with two nodes. Cleanup of the two temporary QA users/projects was attempted twice, but the connector returned `Invalid or expired requestState`. Readback confirmed that the fixtures remain. Cleanup is BLOCKED; the exact bounded statements are in `db/cleanup-qa-fixtures.sql`. No existing user data was deleted.

@@ -1,0 +1,26 @@
+[
+  {
+    "test": "preview mobile login UI",
+    "status": "PASS"
+  },
+  {
+    "test": "preview mobile opt-in cloud save UI",
+    "status": "PASS"
+  },
+  {
+    "test": "preview PWA and deployed API same scene",
+    "status": "PASS"
+  },
+  {
+    "test": "preview offline editing",
+    "status": "PASS"
+  },
+  {
+    "test": "preview reconnect automatic sync status",
+    "status": "PASS"
+  },
+  {
+    "test": "database readback after reconnect: version 3, two scene nodes",
+    "status": "PASS"
+  }
+]

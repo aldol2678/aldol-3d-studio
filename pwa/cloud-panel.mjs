@@ -1,3 +1,4 @@
+import {serializeWorld} from '/compat/inha-editor/world-serialization.js';
 import {validatePng} from '/src/png-contract.mjs';
 import {createClient} from '/vendor/supabase.mjs';
 import {validateRenderGlb} from '/glb-contract.mjs';
@@ -21,7 +22,7 @@ el('local-save').onclick=async()=>{try{await local.saveLocalProject(local.snapsh
 el('local-load').onclick=async()=>{try{const p=(await local.localProjects()).find(p=>p.id===el('local-project').value);if(!p)return;await local.loadWorld(JSON.parse(p.world),user?{key:user.id,binding:null}:{});}catch(e){status('불러오기 실패: '+e.message);}};
 await listLocal();
 const key=()=>user.id;
-const worldKey=w=>JSON.stringify(w);
+const worldKey=w=>serializeWorld(w);
 const hash=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');
 async function authHeaders(){const {data,error}=await client.auth.getSession();if(error||!data.session||data.session.user.id!==user?.id)throw Error('다시 로그인해 주세요.');return {Authorization:'Bearer '+data.session.access_token,'Content-Type':'application/json'};}
 async function call(tool,args){const r=await fetchNet('/api/cloud',{method:'POST',headers:await authHeaders(),body:JSON.stringify({tool,arguments:args}),signal:AbortSignal.timeout(25000)});const data=await r.json();if(!r.ok){const e=Error(data.error||'E_CLOUD');e.status=r.status;throw e;}return data;}
