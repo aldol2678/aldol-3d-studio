@@ -1,0 +1,32 @@
+{
+  "name": "@aldol/3d-studio",
+  "version": "0.5.0-dev",
+  "private": true,
+  "type": "module",
+  "description": "ALDOL 3D Studio standalone source, local MCP, GLB editor, and motion clip data tools",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node --check src/world-scene-adapter.mjs && node --check src/bootstrap.mjs && node --check src/command-schema.mjs && node --check bin/mcp-stdio.mjs && node --check bin/dev-server.mjs && node --check web/studio.js && node --check web/interaction.mjs && node --check src/asset-factory-bridge.mjs && node --check src/asset-archive.mjs && node --check web/factory-panel.mjs && node --check web/glb-contract.mjs && node --check web/model-viewport.mjs && node --check src/motion-library.mjs",
+    "test": "node --test tests/adapter.test.mjs tests/mcp.test.mjs tests/http.test.mjs tests/interaction.test.mjs tests/asset-factory-v51.test.mjs tests/glb-render.test.mjs tests/motion.test.mjs",
+    "test:real": "node scripts/run-bundled-real.mjs",
+    "test:mcp": "node --test tests/mcp.test.mjs",
+    "studio": "node bin/dev-server.mjs",
+    "test:mobile": "node tests/browser-mobile-p12.mjs",
+    "test:factory": "node --test tests/asset-factory-v51.test.mjs",
+    "test:glb": "node tests/browser-glb-p21.mjs",
+    "test:motion": "node --test tests/motion.test.mjs tests/mcp.test.mjs",
+    "test:browser": "node tests/browser-p11.mjs && node tests/browser-factory-p2.mjs && node tests/browser-glb-p21.mjs && node tests/browser-mobile-p12.mjs"
+  },
+  "bin": {
+    "aldol-3d-mcp": "./bin/mcp-stdio.mjs"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "playcanvas": "2.22.4"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
