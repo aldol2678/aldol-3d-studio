@@ -1,5 +1,17 @@
 # ALDOL 3D Studio
 
+**Live Vercel site:** https://aldol-3d-studio.vercel.app/  
+**Deployment:** ALDOL Studio browser-local PWA (production, public HTTPS). [Vercel deployment](https://vercel.com/aldol/aldol-3d-studio)
+
+## Mobile PWA
+
+On Android, open the live site in Chrome and choose **⋮ → Add to Home screen / Install app** (label depends on your browser). When the install prompt appears in the Studio toolbar, the **＋ 설치** button provides the same action. The app includes a service worker, PWA manifest, install icons and touch-friendly editing UI; browser settings can still affect installation availability.
+
+Scenes and verified imported GLB/PNG assets are stored **only in this device's IndexedDB**, not on Vercel. Use **World JSON** or **씬+에셋 ZIP** to retain a manual backup before clearing browser storage or changing phones. Reload and offline usage work after the initial online load and service worker installation. Incognito/private mode may erase data automatically.
+
+Mobile Studio editing includes primitive scene objects, move/rotate/scale gestures, asset import via the **에셋** drawer, local undo/redo and backup exports. **No cross-device sync, cloud storage, account login, animated GLB support, deployed MCP API, or physical Android device certification.** The standalone Node stdio/HTTP MCP remains local-only; the Vercel PWA does not expose that server to the internet.
+
+
 **Standalone, public-source 3D scene editor and MCP development workspace.**
 
 [![CI](https://github.com/aldol2678/aldol-3d-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/aldol2678/aldol-3d-studio/actions/workflows/ci.yml)
