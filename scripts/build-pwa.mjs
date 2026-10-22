@@ -10,6 +10,10 @@ await cp(join(root,'compat/inha-editor'),join(dist,'compat/inha-editor'),{recurs
 await cp(join(root,'pwa'),join(dist,'pwa'),{recursive:true});
 await copyFile(join(root,'src/command-schema.mjs'),join(dist,'command-schema.mjs'));
 await mkdir(join(dist,'vendor'),{recursive:true});
+await mkdir(join(dist,'src'),{recursive:true});
+for(const f of ['scene-command-core.mjs','command-schema.mjs','png-contract.mjs'])await copyFile(join(root,'src',f),join(dist,'src',f));
+const supabase=await readFile(join(root,'node_modules/@supabase/supabase-js/dist/umd/supabase.js'),'utf8');
+await writeFile(join(dist,'vendor/supabase.mjs'),supabase+'\nexport const createClient=supabase.createClient;');
 await copyFile(join(root,'node_modules/playcanvas/build/playcanvas.mjs'),join(dist,'vendor/playcanvas.mjs'));
 let html=await readFile(join(dist,'index.html'),'utf8');
 html=html.replace('<title>ALDOL 3D Studio · P1</title>','<title>ALDOL 3D Studio · Mobile PWA</title>');
@@ -31,7 +35,7 @@ html=html.replace('<section class="factory-panel" aria-label="Asset Factory v5.1
 html=html.replace('LOCAL SCENE','PWA · DEVICE-SAVED SCENE');
 html=html.replace('<a class="export factory-export" href="/api/assets/package"','<a class="export factory-export" href="#"');
 html=html.replace('<span>INHA WORLD</span>','<span>ALDOL PWA</span>');
-html=html.replace('</header>\n<div class="workspace">','</header>\n<div class="pwa-note" role="status">기기 내부에 자동 저장됩니다. 서버 동기화는 지원하지 않습니다. 공유 기기에서는 사용에 주의하세요.</div>\n<div class="workspace">');
+html=html.replace('</header>\n<div class="workspace">','</header>\n<div class="pwa-note" role="status">기기 내부에 자동 저장됩니다. 클라우드는 로그인 후 수동 동기화할 수 있습니다.</div>\n<div class="workspace">');
 await writeFile(join(dist,'index.html'),html);
 let studio=await readFile(join(dist,'studio.js'),'utf8');
 const legacy="$('export').onclick=()=>{const a=document.createElement('a');a.href='/api/export';a.download='world.json';a.click();};";
@@ -68,7 +72,7 @@ function png(size){
 }
 await mkdir(join(dist,'icons'),{recursive:true});
 for(const size of [192,512])await writeFile(join(dist,'icons','icon-'+size+'.png'),png(size));
-const files=['/','/index.html','/studio.css','/studio.js','/factory-panel.mjs','/interaction.mjs','/model-viewport.mjs','/glb-contract.mjs','/vendor/playcanvas.mjs','/command-schema.mjs','/pwa/bootstrap.mjs','/pwa/browser-api.mjs','/pwa/zip.mjs','/pwa/mobile.css','/manifest.webmanifest','/icon.svg','/icons/icon-192.png','/icons/icon-512.png',
+const files=['/','/index.html','/studio.css','/studio.js','/factory-panel.mjs','/interaction.mjs','/model-viewport.mjs','/glb-contract.mjs','/vendor/playcanvas.mjs','/command-schema.mjs','/pwa/bootstrap.mjs','/pwa/browser-api.mjs','/pwa/zip.mjs','/pwa/mobile.css','/pwa/cloud-panel.mjs','/vendor/supabase.mjs','/src/scene-command-core.mjs','/src/command-schema.mjs','/src/png-contract.mjs','/manifest.webmanifest','/icon.svg','/icons/icon-192.png','/icons/icon-512.png',
  ...['world-document.js','world-schema.js','world-serialization.js','editor-commands.js','building-mass.js','path-spline.js','map-reference.js'].map(f=>'/compat/inha-editor/'+f)];
 const checksum=createHash('sha256');
 for(const file of files.filter(item=>item!=='/'))checksum.update(await readFile(join(dist,file.slice(1))));
@@ -79,7 +83,7 @@ const sw=[
  "self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(PRECACHE)).then(()=>self.skipWaiting())));",
  "self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith('aldol-studio-pwa-')&&k!==CACHE)await caches.delete(k);await self.clients.claim()})()));",
  "self.addEventListener('fetch',e=>{",
- "const u=new URL(e.request.url);if(u.origin!==self.location.origin||e.request.method!=='GET'||u.pathname.startsWith('/api/'))return;",
+ "const u=new URL(e.request.url);if(u.origin!==self.location.origin||e.request.method!=='GET'||u.pathname.startsWith('/api/')||u.pathname==='/mcp'||u.pathname.startsWith('/.well-known/'))return;",
  "if(e.request.mode==='navigate'){e.respondWith(fetch(e.request).then(async r=>{if(r.ok){(await caches.open(CACHE)).put('/index.html',r.clone())}return r}).catch(async()=> (await caches.match('/index.html'))||Response.error()));return;}",
  "e.respondWith(caches.match(e.request).then(cached=>cached||fetch(e.request)));",
  "});"

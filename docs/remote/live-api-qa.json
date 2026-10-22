@@ -1,0 +1,78 @@
+[
+  {
+    "test": "protected preview access",
+    "status": "PASS"
+  },
+  {
+    "test": "real Supabase password login 1",
+    "status": "PASS"
+  },
+  {
+    "test": "real Supabase password login 2",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed project_create",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed project_get",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed project_save",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed duplicate save",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed stale version",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed second user isolation",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed strict input",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed shared scene core",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed persistent motion library",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed undo",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed redo",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed unauthenticated API",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed unauthenticated MCP",
+    "status": "PASS"
+  },
+  {
+    "test": "deployed disabled MCP gate",
+    "status": "PASS"
+  },
+  {
+    "test": "real session logout",
+    "status": "PASS"
+  },
+  {
+    "test": "revoked session denies project data",
+    "status": "PASS"
+  }
+]

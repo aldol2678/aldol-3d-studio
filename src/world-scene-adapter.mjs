@@ -1,3 +1,4 @@
+import {applySceneCommand} from './scene-command-core.mjs';
 import { createHash } from 'node:crypto';
 import { validateCommand, validateTransform, safeKey } from './command-schema.mjs';
 const clone = x => structuredClone(x);
@@ -60,30 +61,7 @@ export class WorldSceneAdapter {
     if(c.expectedRevision!==this.revisionToken)return this._response('conflict',c.commandId,'E_REVISION_STALE');
     const p=c.payload;let applied=false;
     try {
-      if(c.operation==='node.create'){
-        if(this.world.hasEntity(p.id))throw new Error('E_DUP_ENTITY_ID');
-        if(p.parentId && !this.world.hasEntity(p.parentId))throw new Error('E_PARENT_NOT_FOUND');
-        this.commands.addEntity(p);applied=true;
-      } else if(c.operation==='node.rename'){
-        const e=this.world.getEntity(c.targetId);if(!e)throw new Error('E_ENTITY_NOT_FOUND');
-        if(e.name!==p.name.trim()){this.commands.renameEntity(c.targetId,p.name);applied=true;}
-      } else if(c.operation==='node.transform'){
-        const e=this.world.getEntity(c.targetId);if(!e)throw new Error('E_ENTITY_NOT_FOUND');
-        const normalized=clone(p.transform);const len=Math.hypot(...normalized.rotation);normalized.rotation=normalized.rotation.map(n=>n/len);
-        const next={...e,transform:normalized};this._verifyCandidate(next);
-        if(safeKey(e.transform)!==safeKey(normalized)){this.commands.setTransform(c.targetId,normalized);applied=true;}
-      } else if(c.operation==='node.duplicate'){
-        if(!this.world.hasEntity(c.targetId))throw new Error('E_ENTITY_NOT_FOUND');
-        this.commands.duplicateEntity(c.targetId);applied=true;
-      } else if(c.operation==='node.delete'){
-        if(!this.world.hasEntity(c.targetId))throw new Error('E_ENTITY_NOT_FOUND');
-        if(this.world.listEntities().some(e=>e.parentId===c.targetId))throw new Error('E_ENTITY_HAS_CHILDREN');
-        this.commands.removeEntity(c.targetId);applied=true;
-      } else if(c.operation==='node.reparent'){
-        const e=this.world.getEntity(c.targetId);if(!e)throw new Error('E_ENTITY_NOT_FOUND');
-        const next={...e,parentId:p.parentId};this._verifyCandidate(next);
-        if(e.parentId!==p.parentId){this.commands.replaceEntity(c.targetId,next,'Reparent Entity');applied=true;}
-      }
+      applied=applySceneCommand(this.world,this.commands,this.validateWorld,c);
       this._refresh();
       const receipt=this._response(applied?'applied':'unchanged',c.commandId);
       this.receipts.set(c.commandId,{key,receipt:clone(receipt)});

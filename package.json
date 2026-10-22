@@ -1,6 +1,6 @@
 {
   "name": "@aldol/3d-studio",
-  "version": "0.5.0-dev",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "description": "ALDOL 3D Studio standalone GLB editor, local stdio MCP, loopback HTTP preflight, motion data tools",
@@ -8,8 +8,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "check": "node --check src/world-scene-adapter.mjs && node --check src/bootstrap.mjs && node --check src/command-schema.mjs && node --check bin/mcp-stdio.mjs && node --check bin/dev-server.mjs && node --check web/studio.js && node --check web/interaction.mjs && node --check src/asset-factory-bridge.mjs && node --check src/asset-archive.mjs && node --check web/factory-panel.mjs && node --check web/glb-contract.mjs && node --check web/model-viewport.mjs && node --check src/motion-library.mjs && node --check src/mcp-runtime.mjs && node --check src/mcp-http-server.mjs && node --check bin/mcp-http.mjs && node --check pwa/browser-api.mjs && node --check pwa/bootstrap.mjs && node --check pwa/zip.mjs && node --check scripts/build-pwa.mjs",
-    "test": "node --test tests/adapter.test.mjs tests/mcp.test.mjs tests/http.test.mjs tests/interaction.test.mjs tests/asset-factory-v51.test.mjs tests/glb-render.test.mjs tests/motion.test.mjs tests/mcp-http.test.mjs",
+    "check": "node --check src/world-scene-adapter.mjs && node --check src/bootstrap.mjs && node --check src/command-schema.mjs && node --check bin/mcp-stdio.mjs && node --check bin/dev-server.mjs && node --check web/studio.js && node --check web/interaction.mjs && node --check src/asset-factory-bridge.mjs && node --check src/asset-archive.mjs && node --check web/factory-panel.mjs && node --check web/glb-contract.mjs && node --check web/model-viewport.mjs && node --check src/motion-library.mjs && node --check src/mcp-runtime.mjs && node --check src/mcp-http-server.mjs && node --check bin/mcp-http.mjs && node --check pwa/browser-api.mjs && node --check pwa/bootstrap.mjs && node --check pwa/zip.mjs && node --check scripts/build-pwa.mjs && node --check server/auth.mjs && node --check server/studio-service.mjs && node --check server/mcp-handler.mjs && node --check pwa/cloud-panel.mjs",
+    "test": "node --test tests/adapter.test.mjs tests/mcp.test.mjs tests/http.test.mjs tests/interaction.test.mjs tests/asset-factory-v51.test.mjs tests/glb-render.test.mjs tests/motion.test.mjs tests/mcp-http.test.mjs tests/remote.test.mjs",
     "test:real": "node scripts/run-bundled-real.mjs",
     "test:mcp": "node --test tests/mcp.test.mjs",
     "studio": "node bin/dev-server.mjs",
@@ -28,7 +28,11 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "playcanvas": "2.22.4"
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@supabase/supabase-js": "2.118.0",
+    "jose": "6.2.13",
+    "playcanvas": "2.22.4",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "playwright": "1.63.0"
