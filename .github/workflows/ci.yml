@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run test:real
+      - name: Verify 6 motion MCP tools
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { spawn } from 'node:child_process';
+          import { createInterface } from 'node:readline';
+
+          const children = new Set();
+          const deadline = setTimeout(() => {
+            console.error('Motion MCP verification timed out after 30 seconds');
+            for (const child of children) child.kill('SIGKILL');
+            process.exit(1);
+          }, 30_000);
+          const readOnly = ['motion_library', 'motion_validate', 'motion_blend', 'motion_export'];
+          const writeOnly = ['motion_import', 'motion_retarget'];
+
+          async function verify(allowWrite) {
+            const child = spawn('node', [
+              'bin/mcp-stdio.mjs', ...(allowWrite ? ['--allow-write'] : []),
+            ], { stdio: ['pipe', 'pipe', 'pipe'] });
+            children.add(child);
+            const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
+            const pending = new Map();
+            let nextId = 0;
+            let failure;
+            const fail = error => {
+              failure ??= error;
+              for (const { reject } of pending.values()) reject(error);
+              pending.clear();
+            };
+            const exited = new Promise(resolve => {
+              child.once('close', (code, signal) => {
+                children.delete(child);
+                fail(new Error(`MCP exited: code=${code}, signal=${signal}`));
+                resolve({ code, signal });
+              });
+            });
+            child.on('error', fail);
+            child.stdin.on('error', fail);
+            child.stdout.on('error', fail);
+            child.stderr.pipe(process.stderr);
+            lines.on('line', line => {
+              try {
+                const response = JSON.parse(line);
+                assert.equal(response.jsonrpc, '2.0');
+                const request = pending.get(response.id);
+                assert.ok(request, `Unexpected response id: ${response.id}`);
+                pending.delete(response.id);
+                if (response.error) request.reject(new Error(JSON.stringify(response.error)));
+                else request.resolve(response.result);
+              } catch (error) {
+                fail(error);
+              }
+            });
+            function request(method, params = {}) {
+              if (failure) return Promise.reject(failure);
+              const id = ++nextId;
+              return new Promise((resolve, reject) => {
+                pending.set(id, { resolve, reject });
+                child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id, method, params }) + '\n');
+              });
+            }
+            try {
+              const initialized = await request('initialize', {
+                protocolVersion: '2025-06-18', capabilities: {},
+                clientInfo: { name: 'ci-motion-verification', version: '1.0.0' },
+              });
+              assert.ok(initialized.serverInfo);
+              child.stdin.write(JSON.stringify({
+                jsonrpc: '2.0', method: 'notifications/initialized',
+              }) + '\n');
+              const result = await request('tools/list');
+              assert.ok(Array.isArray(result.tools), 'tools/list must return tools');
+              const names = new Set(result.tools.map(tool => tool.name));
+              for (const name of readOnly) assert.ok(names.has(name), `Missing ${name}`);
+              for (const name of writeOnly) {
+                assert.equal(names.has(name), allowWrite, `Unexpected visibility for ${name}`);
+              }
+              const library = await request('tools/call', { name: 'motion_library', arguments: {} });
+              assert.ok(library && typeof library === 'object', 'Missing motion_library result');
+              assert.ok(!library.isError, 'motion_library returned an error');
+              assert.ok(Array.isArray(library.content), 'motion_library must return content');
+              console.log(`${allowWrite ? 'Write-enabled' : 'Read-only'} MCP: verified ${allowWrite ? 6 : 4} motion tools and motion_library({})`);
+            } finally {
+              child.stdin.end();
+              const { code, signal } = await exited;
+              lines.close();
+              assert.equal(signal, null, 'MCP terminated by signal');
+              assert.equal(code, 0, 'MCP exited unsuccessfully');
+            }
+          }
+
+          try {
+            await verify(true);
+            await verify(false);
+            console.log('All motion MCP checks passed.');
+          } catch (error) {
+            console.error(error);
+            process.exitCode = 1;
+          } finally {
+            clearTimeout(deadline);
+            for (const child of children) child.kill('SIGKILL');
+          }
+          NODE
+
+  browser:
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-evidence
+          path: |
+            docs/evidence
+            test-results
+          if-no-files-found: ignore
+          retention-days: 14
