@@ -25,3 +25,10 @@ button{touch-action:manipulation}
  .pwa-note{font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+@media (max-width:770px){
+ .pwa-assets-toggle{min-width:44px;background:#20334b!important;color:#d5e9fb!important}
+ .pwa-asset-drawer-open .left .factory-panel{display:flex;position:fixed;top:calc(59px + env(safe-area-inset-top));right:8px;left:8px;bottom:calc(36px + env(safe-area-inset-bottom));z-index:30;overflow:auto;background:#152437;border:1px solid #61738e;border-radius:12px;box-shadow:0 14px 38px #000b}
+ .pwa-asset-drawer-open .factory-note{max-width:620px}
+}
+@media (min-width:771px){.pwa-assets-toggle{display:none!important}}
