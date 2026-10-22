@@ -1,6 +1,7 @@
 import {cp,copyFile,mkdir,readFile,writeFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {deflateSync} from 'node:zlib';
+import {createHash} from 'node:crypto';
 const root=resolve(import.meta.dirname,'..'),dist=join(root,'dist');
 await mkdir(dist,{recursive:true});
 for(const name of ['studio.css','studio.js','index.html','interaction.mjs','model-viewport.mjs','glb-contract.mjs','factory-panel.mjs'])
@@ -69,8 +70,11 @@ await mkdir(join(dist,'icons'),{recursive:true});
 for(const size of [192,512])await writeFile(join(dist,'icons','icon-'+size+'.png'),png(size));
 const files=['/','/index.html','/studio.css','/studio.js','/factory-panel.mjs','/interaction.mjs','/model-viewport.mjs','/glb-contract.mjs','/vendor/playcanvas.mjs','/command-schema.mjs','/pwa/bootstrap.mjs','/pwa/browser-api.mjs','/pwa/zip.mjs','/pwa/mobile.css','/manifest.webmanifest','/icon.svg','/icons/icon-192.png','/icons/icon-512.png',
  ...['world-document.js','world-schema.js','world-serialization.js','editor-commands.js','building-mass.js','path-spline.js','map-reference.js'].map(f=>'/compat/inha-editor/'+f)];
+const checksum=createHash('sha256');
+for(const file of files.filter(item=>item!=='/'))checksum.update(await readFile(join(dist,file.slice(1))));
+const cacheName='aldol-studio-pwa-v1-'+checksum.digest('hex').slice(0,12);
 const sw=[
- "const CACHE='aldol-studio-pwa-v1';",
+ 'const CACHE='+JSON.stringify(cacheName)+';',
  'const PRECACHE='+JSON.stringify(files)+';',
  "self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(PRECACHE)).then(()=>self.skipWaiting())));",
  "self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith('aldol-studio-pwa-')&&k!==CACHE)await caches.delete(k);await self.clients.claim()})()));",
