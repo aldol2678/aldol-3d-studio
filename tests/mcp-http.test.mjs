@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {once} from 'node:events';
+import {request as httpRequest} from 'node:http';
 import {resolve} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createLoopbackMcpServer} from '../src/mcp-http-server.mjs';
@@ -49,7 +50,16 @@ test('HTTP method, content, protocol and browser-origin guards fail closed',asyn
     assert.equal((await fetch(base+'/mcp',{method:'POST',headers:{'content-type':'text/plain'},body:'{}'})).status,415);
     assert.equal((await post(request(1,'ping'),{'mcp-protocol-version':'2099-01-01'})).status,400);
     assert.equal((await post(request(1,'ping'),{origin:'https://evil.example'})).status,403);
-    assert.equal((await post(request(1,'ping'),{host:'evil.example'})).status,403);
+    const badHostStatus=await new Promise((resolve,reject)=>{
+      const endpoint=new URL(base);
+      const req=httpRequest({hostname:'127.0.0.1',port:Number(endpoint.port),path:'/mcp',method:'POST',
+        headers:{host:'evil.example','content-type':'application/json'}},res=>{
+        res.resume();res.on('end',()=>resolve(res.statusCode));
+      });
+      req.on('error',reject);
+      req.end(JSON.stringify(request(1,'ping')));
+    });
+    assert.equal(badHostStatus,403);
     assert.equal((await post([request(1,'ping')])).status,400);
     assert.equal((await post('not json')).status,400);
     assert.equal((await post(' '.repeat(2*1024*1024+1))).status,413);
