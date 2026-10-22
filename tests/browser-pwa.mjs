@@ -32,7 +32,7 @@ try{
  }
  await page.locator('#add-box').click();
  const canvas=page.locator('#canvas');
- await canvas.tap({position:{x:110,y:90}});
+ await canvas.tap({position:{x:300,y:220}});
  await page.waitForFunction(()=>window.__ALDOL_PWA__.readScene().nodes.length===1);
  const before=await page.evaluate(()=>window.__ALDOL_PWA__.readScene());
  assert.equal(before.nodes.length,1);
