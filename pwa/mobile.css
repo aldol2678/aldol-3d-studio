@@ -1,0 +1,27 @@
+/* PWA additions on top of the existing Studio touch-first responsive layout. */
+html{overscroll-behavior:none}
+body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+.pwa-note{background:#162334;color:#c1d4e4;border-bottom:1px solid #334b5d;padding:5px 12px;font-size:11px;text-align:center;flex:none}
+.topbar .pwa-install{background:#274b39;color:#d1f8df;border:1px solid #467a59;font-weight:700;white-space:nowrap}
+[hidden]{display:none!important}
+input[type="file"]{max-width:100%}
+button{touch-action:manipulation}
+@media (max-width:770px){
+ .app{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+ .topbar{min-height:54px}
+ .pwa-note{font-size:10px;padding:3px 9px}
+ .left{min-height:112px}
+ .left .factory-panel{display:none}
+ .right{min-height:142px}
+ .topbar .pwa-install{font-size:10px;padding:0 7px}
+ .factory-export{font-size:10px}
+ .node-row button{min-height:44px}
+ .toolbar button{min-height:44px}
+ .edit-tools button{min-width:44px;min-height:44px}
+}
+@media (max-width:390px){
+ .identity small{display:none}
+ .identity strong{font-size:10px}
+ .pwa-note{font-size:9px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
