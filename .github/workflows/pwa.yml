@@ -1,0 +1,48 @@
+name: Studio PWA Build & Mobile QA
+on:
+  pull_request:
+    paths:
+      - pwa/**
+      - scripts/build-pwa.mjs
+      - tests/browser-pwa.mjs
+      - vercel.json
+      - package.json
+      - web/**
+      - .github/workflows/pwa.yml
+  push:
+    branches: [main]
+    paths:
+      - pwa/**
+      - scripts/build-pwa.mjs
+      - tests/browser-pwa.mjs
+      - vercel.json
+      - package.json
+      - web/**
+permissions:
+  contents: read
+concurrency:
+  group: aldol-pwa-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  pwa-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run check
+      - run: npm run build:pwa
+      - run: npx --no-install playwright install --with-deps chromium
+      - run: npm run test:pwa:browser
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: aldol-3d-studio-pwa-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
