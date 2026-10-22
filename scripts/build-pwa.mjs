@@ -23,9 +23,10 @@ html=html.replace('<link rel="stylesheet" href="/studio.css" />',[
  '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />',
  '<link rel="apple-touch-icon" href="/icons/icon-192.png" />'
 ].join('\n'));
-html=html.replace('<span class="mode" id="mode">연결 확인 중</span>', '<span class="mode" id="mode">LOCAL PWA</span><button class="pwa-install" type="button" id="pwa-install" hidden>＋ 설치</button>');
+html=html.replace('<span class="mode" id="mode">연결 확인 중</span>', '<span class="mode" id="mode">LOCAL PWA</span><button class="pwa-assets-toggle" type="button" id="pwa-assets-toggle" aria-expanded="false" aria-controls="factory-panel-drawer">에셋</button><button class="pwa-install" type="button" id="pwa-install" hidden>＋ 설치</button>');
 html=html.replace('WORLD EDITOR / P1','MOBILE / LOCAL-FIRST');
 html=html.replace('v5.1 LOCAL HANDOFF','v5.1 DEVICE IMPORT');
+html=html.replace('<section class="factory-panel" aria-label="Asset Factory v5.1 가져오기">','<section class="factory-panel" id="factory-panel-drawer" aria-label="Asset Factory v5.1 가져오기">');
 html=html.replace('LOCAL SCENE','PWA · DEVICE-SAVED SCENE');
 html=html.replace('<a class="export factory-export" href="/api/assets/package"','<a class="export factory-export" href="#"');
 html=html.replace('<span>INHA WORLD</span>','<span>ALDOL PWA</span>');
