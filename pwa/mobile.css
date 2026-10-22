@@ -1,0 +1,34 @@
+/* PWA additions on top of the existing Studio touch-first responsive layout. */
+html{overscroll-behavior:none}
+body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+.pwa-note{background:#162334;color:#c1d4e4;border-bottom:1px solid #334b5d;padding:5px 12px;font-size:11px;text-align:center;flex:none}
+.topbar .pwa-install{background:#274b39;color:#d1f8df;border:1px solid #467a59;font-weight:700;white-space:nowrap}
+[hidden]{display:none!important}
+input[type="file"]{max-width:100%}
+button{touch-action:manipulation}
+@media (max-width:770px){
+ .app{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+ .topbar{min-height:54px}
+ .pwa-note{font-size:10px;padding:3px 9px}
+ .left{min-height:112px}
+ .left .factory-panel{display:none}
+ .right{min-height:142px}
+ .topbar .pwa-install{font-size:10px;padding:0 7px}
+ .factory-export{font-size:10px}
+ .node-row button{min-height:44px}
+ .toolbar button{min-height:44px}
+ .edit-tools button{min-width:44px;min-height:44px}
+}
+@media (max-width:390px){
+ .identity small{display:none}
+ .identity strong{font-size:10px}
+ .pwa-note{font-size:9px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+@media (max-width:770px){
+ .pwa-assets-toggle{min-width:44px;background:#20334b!important;color:#d5e9fb!important}
+ .pwa-asset-drawer-open .left .factory-panel{display:flex;position:fixed;top:calc(59px + env(safe-area-inset-top));right:8px;left:8px;bottom:calc(36px + env(safe-area-inset-bottom));z-index:30;overflow:auto;background:#152437;border:1px solid #61738e;border-radius:12px;box-shadow:0 14px 38px #000b}
+ .pwa-asset-drawer-open .factory-note{max-width:620px}
+}
+@media (min-width:771px){.pwa-assets-toggle{display:none!important}}
