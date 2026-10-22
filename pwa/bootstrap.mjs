@@ -25,6 +25,7 @@ try{
  await import('/pwa/browser-api.mjs');
  await import('/studio.js');
  await import('/factory-panel.mjs');
+ import('/pwa/cloud-panel.mjs').catch(()=>{});
  if('serviceWorker' in navigator){
   navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(err=>{
    console.warn('Offline installation unavailable:',err.message);

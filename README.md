@@ -89,3 +89,10 @@ OpenAI's [custom MCP server connection guide](https://help.openai.com/en/article
 - **License: `UNLICENSED`.** The public repository does not grant third parties permission to use, redistribute, or modify the code. No MIT/Apache grant is implied by public visibility.
 
 Development tasks belong in the standalone repository. INHA WORLD's production assets and consumer integration have **not** been migrated to this repository.
+
+## Remote integration (v0.6.0, activation pending)
+
+This branch adds a protected Streamable HTTP MCP endpoint and opt-in Supabase project sync.
+OAuth activation and authenticated end-to-end QA remain blocked; the remote endpoint fails closed by default.
+See [operations and activation requirements](docs/remote/OPERATIONS.md) and [verification matrix](docs/remote/QA.md).
+Existing local PWA and stdio usage remain supported. License remains UNLICENSED.

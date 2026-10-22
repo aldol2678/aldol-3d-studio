@@ -43,5 +43,24 @@
         }
       ]
     }
-  ]
+  ],
+  "rewrites": [
+    {
+      "source": "/mcp",
+      "destination": "/api/mcp"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "/api/metadata"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource/mcp",
+      "destination": "/api/metadata"
+    }
+  ],
+  "functions": {
+    "api/*.mjs": {
+      "maxDuration": 30
+    }
+  }
 }

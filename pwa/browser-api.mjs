@@ -1,9 +1,12 @@
+import {validatePng} from '/src/png-contract.mjs';
 import {WorldDocument,createEmptyWorld} from '/compat/inha-editor/world-document.js';
 import {EditorCommands} from '/compat/inha-editor/editor-commands.js';
 import {parseWorld,serializeWorld} from '/compat/inha-editor/world-serialization.js';
 import {validateWorld} from '/compat/inha-editor/world-schema.js';
 import {validateCommand} from '/command-schema.mjs';
 import {validateRenderGlb} from '/glb-contract.mjs';
+import {applySceneCommand} from '/src/scene-command-core.mjs';
+import {safeKey} from '/command-schema.mjs';
 import {makeStoredZip} from '/pwa/zip.mjs';
 
 const nativeFetch=window.fetch.bind(window);
@@ -18,18 +21,22 @@ function openDb(){
 }
 const db=await openDb();
 function get(store,key){return new Promise((resolve,reject)=>{const req=db.transaction(store,'readonly').objectStore(store).get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+function keys(store){return new Promise((resolve,reject)=>{const r=db.transaction(store,'readonly').objectStore(store).getAllKeys();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 function all(store){return new Promise((resolve,reject)=>{const req=db.transaction(store,'readonly').objectStore(store).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
-function put(store,value,key){return new Promise((resolve,reject)=>{const req=db.transaction(store,'readwrite').objectStore(store).put(value,...(key===undefined?[]:[key]));req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error);});}
+function put(store,value,key){return new Promise((resolve,reject)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(value,...(key===undefined?[]:[key]));tx.oncomplete=()=>resolve();tx.onabort=()=>reject(tx.error||Error('E_LOCAL_SAVE'));tx.onerror=()=>reject(tx.error);});}
 const record=await get('state','current');
-const world=new WorldDocument(record?.world?parseWorld(record.world):createEmptyWorld({worldId:'aldol.studio.pwa',name:'ALDOL 3D Studio Local PWA'}));
+let world=new WorldDocument(record?.world?parseWorld(record.world):createEmptyWorld({worldId:'aldol.studio.pwa',name:'ALDOL 3D Studio Local PWA'}));
 const state={selectedEntityId:null,select(id){this.selectedEntityId=id;},clearSelection(){this.selectedEntityId=null;}};
-const commands=new EditorCommands(world,state);
+let commands=new EditorCommands(world,state);
+const localKey=record?.localKey||'legacy-local-project';
 let serial=record?.serial||0;
 let revision='scene:'+serial+':local';
 const receipts=new Map();
 async function save(){
-  serial++;revision='scene:'+serial+':local';
-  await put('state',{serial,world:serializeWorld(world.snapshot())},'current');
+  const next=serial+1;
+  await put('state',{serial:next,localKey,world:serializeWorld(world.snapshot())},'current');
+  serial=next;revision='scene:'+serial+':local';
+  window.dispatchEvent(new Event('studio-local-saved'));
 }
 function read(){
  const w=world.snapshot();
@@ -41,29 +48,23 @@ function read(){
 const result=(status,commandId,diagnosticCode)=>({status,commandId,revisionToken:revision,...(diagnosticCode?{diagnosticCode}:{})});
 async function dispatch(c){
  if(!c||validateCommand(c))return result('rejected',String(c?.commandId||''),validateCommand(c)||'E_COMMAND_INVALID');
- if(receipts.has(c.commandId))return result('rejected',c.commandId,'E_COMMAND_ID_REUSE');
+ if(receipts.has(c.commandId)){const old=receipts.get(c.commandId);return old.key===safeKey(c)?old.result:result('rejected',c.commandId,'E_COMMAND_ID_REUSE');}
  if(c.expectedRevision!==revision)return result('conflict',c.commandId,'E_REVISION_STALE');
  const p=c.payload;let changed=false;
  try{
-  const existing=c.targetId&&world.getEntity(c.targetId);
-  if(c.operation==='node.create'){commands.addEntity(p);changed=true;}
-  else if(!existing)throw Error('E_ENTITY_NOT_FOUND');
-  else if(c.operation==='node.rename')changed=commands.renameEntity(c.targetId,p.name)!==false;
-  else if(c.operation==='node.transform')changed=commands.setTransform(c.targetId,p.transform)!==false;
-  else if(c.operation==='node.duplicate'){commands.duplicateEntity(c.targetId);changed=true;}
-  else if(c.operation==='node.delete'){
-    if(world.listEntities().some(n=>n.parentId===c.targetId))throw Error('E_ENTITY_HAS_CHILDREN');
-    changed=commands.removeEntity(c.targetId);
-  }else if(c.operation==='node.reparent')changed=commands.replaceEntity(c.targetId,{...existing,parentId:p.parentId},'Reparent Entity');
-  else throw Error('E_OPERATION_UNSUPPORTED');
-  if(changed){await save();receipts.set(c.commandId,true);if(receipts.size>100)receipts.delete(receipts.keys().next().value);}
+  const before=serializeWorld(world.snapshot());
+  changed=applySceneCommand(world,commands,validateWorld,c);
+  if(changed){try{await save();}catch(e){world=new WorldDocument(parseWorld(before));commands=new EditorCommands(world,state);throw e;}}
+  receipts.set(c.commandId,{key:safeKey(c),result:result(changed?'applied':'unchanged',c.commandId)});
+  if(receipts.size>500)receipts.delete(receipts.keys().next().value);
   return result(changed?'applied':'unchanged',c.commandId);
  }catch(e){return result('rejected',c.commandId,e.message?.split(':')[0]||'E_COMMAND_FAILED');}
 }
 async function history(which,expectedRevision){
  if(expectedRevision!==revision)return result('conflict',which,'E_REVISION_STALE');
+ const before=serializeWorld(world.snapshot());
  try{const ok=commands[which]();if(ok)await save();return result(ok?'applied':'unchanged',which);}
- catch(e){return result('rejected',which,e.message);}
+ catch(e){world=new WorldDocument(parseWorld(before));commands=new EditorCommands(world,state);return result('rejected',which,e.message);}
 }
 const hash=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
 function base64Bytes(s){
@@ -71,13 +72,7 @@ function base64Bytes(s){
  const raw=atob(s),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
  return bytes;
 }
-function scanPng(bytes){
- const u=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
- if(bytes.length<33||u.getUint32(0)!==0x89504e47||u.getUint32(12)!==0x49484452)throw Error('E_PNG_INVALID');
- const width=u.getUint32(16),height=u.getUint32(20);
- if(!width||!height||width>16384||height>16384)throw Error('E_PNG_DIMENSIONS');
- return {format:'png',width,height};
-}
+const scanPng=validatePng;
 async function importAsset(a){
  if(!a||typeof a.file!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,180}\.(?:glb|png)$/i.test(a.file)||a.file.includes('..'))throw Error('E_IMPORT_TYPE');
  const bytes=base64Bytes(a.contentsBase64);
@@ -120,6 +115,8 @@ async function exportBundle(){
  const zip=makeStoredZip(files);
  await blobDownload('aldol-studio-scene-assets.zip',zip,'application/zip');
 }
+let writeQueue=Promise.resolve();
+const enqueue=fn=>{const task=writeQueue.then(fn);writeQueue=task.catch(()=>{});return task;};
 async function api(path,options={}){
  const method=(options.method||'GET').toUpperCase(),u=new URL(path,location.href),key=u.pathname;
  try{
@@ -134,20 +131,39 @@ async function api(path,options={}){
   }
   if(method!=='POST')return json({error:'E_METHOD_NOT_ALLOWED'},405);
   const a=JSON.parse(options.body||'{}');
-  if(key==='/api/command')return json(await dispatch(a));
-  if(key==='/api/undo'||key==='/api/redo')return json(await history(key.endsWith('undo')?'undo':'redo',a.expectedRevision));
-  if(key==='/api/assets/import')return json(await importAsset(a));
+  if(key==='/api/command')return json(await enqueue(()=>dispatch(a)));
+  if(key==='/api/undo'||key==='/api/redo')return json(await enqueue(()=>history(key.endsWith('undo')?'undo':'redo',a.expectedRevision)));
+  if(key==='/api/assets/import')return json(await enqueue(()=>importAsset(a)));
   return json({error:'E_NOT_FOUND'},404);
  }catch(e){return json({error:e.message||'E_PWA_REQUEST'},400);}
 }
 window.fetch=(input,init)=>{
  const url=new URL(typeof input==='string'?input:input.url,location.href);
- if(url.origin===location.origin&&url.pathname.startsWith('/api/'))return api(url.href,init??{});
+ if(url.origin===location.origin&&url.pathname.startsWith('/api/')&&!url.pathname.startsWith('/api/cloud')&&!url.pathname.startsWith('/api/mcp')&&url.pathname!=='/api/asset')return api(url.href,init??{});
  return nativeFetch(input,init);
 };
 window.__ALDOL_PWA__={
  downloadWorld:()=>blobDownload('aldol-studio-world.json',encoder.encode(serializeWorld(world.snapshot())),'application/json'),
- exportBundle,readScene:()=>read(),offline:true,
+ exportBundle,readScene:()=>read(),offline:true,nativeFetch,
+ currentLocalKey:()=>localKey,assetRecords:()=>all('assets'),
+ localProjects:async()=>{const ids=(await keys('state')).filter(k=>typeof k==='string'&&(k.startsWith('local:')||k.startsWith('backup-')));return Promise.all(ids.map(async id=>({id,...await get('state',id)})));},
+ saveLocalProject:async name=>{const id='local:'+crypto.randomUUID();await put('state',{name,world:serializeWorld(world.snapshot()),savedAt:Date.now()},id);return id;},
+
+ snapshot:()=>JSON.parse(serializeWorld(world.snapshot())),
+ loadWorld:(candidate,options={})=>enqueue(async()=>{
+   const text=serializeWorld(candidate),nextLocalKey=crypto.randomUUID();
+   await new Promise((resolve,reject)=>{
+     const tx=db.transaction(['state','assets'],'readwrite'),store=tx.objectStore('state');
+     store.put({serial,world:serializeWorld(world.snapshot())},'backup-'+Date.now());
+     store.put({serial:serial+1,localKey:nextLocalKey,world:text},'current');
+     if(options.key)store.put(options.binding?{...options.binding,localKey:nextLocalKey}:null,'sync:'+options.key);
+     for(const record of options.assets||[])tx.objectStore('assets').put(record);
+     tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('E_LOCAL_SAVE'));
+   });
+   location.reload();
+ }),
+ syncGet:key=>get('state','sync:'+key),syncPut:(key,value)=>put('state',value,'sync:'+key),
+
 };
 const bundle=document.getElementById('asset-bundle');
 bundle?.addEventListener('click',e=>{e.preventDefault();exportBundle().catch(error=>{
