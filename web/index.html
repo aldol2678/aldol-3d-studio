@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="/studio.css" />
 <script src="/studio.js" type="module"></script>
 <script src="/factory-panel.mjs" type="module"></script>
+<script src="/asset-catalog.mjs" type="module"></script>
 </head>
 <body>
 <div class="app">
@@ -16,9 +17,25 @@
 <div class="workspace">
   <aside class="left pane" aria-label="장면 계층"><div class="pane-heading"><div><small>SCENE GRAPH</small><h2>오브젝트</h2></div><span id="node-count" class="count">0</span></div><div class="toolbar"><button id="add-box" draggable="true" class="add" data-prefab="Box" title="상자 배치">+ 상자</button><button id="add-tall" draggable="true" class="add" data-prefab="Column" title="기둥 배치">+ 기둥</button><button id="add-floor" draggable="true" class="add" data-prefab="Floor" title="바닥 배치">+ 바닥</button></div><div class="scene-tools"><input id="scene-search" type="search" placeholder="오브젝트 검색" aria-label="오브젝트 검색" /><button id="scene-root" type="button" title="여기에 드롭하여 루트로 이동">◇ 씬 루트</button></div><div id="nodes" class="node-list" role="listbox" aria-label="오브젝트 목록"></div><section class="factory-panel" aria-label="Asset Factory v5.1 가져오기">
  <div class="factory-title"><strong>ASSET FACTORY</strong><small>v5.1 LOCAL HANDOFF</small></div>
+ <details class="catalog-directory">
+ <summary>▣ 무료 에셋 탐색 <small>나루 조사 · 권리 구분</small></summary>
+ <div class="catalog-tools">
+   <label for="asset-catalog-search">에셋 공급원 검색</label>
+   <input id="asset-catalog-search" type="search" placeholder="사이트·유형 검색" autocomplete="off" />
+   <label for="asset-catalog-tier">라이선스 필터</label>
+   <select id="asset-catalog-tier"><option value="all">전체</option><option value="cc0">CC0 근거 확인</option><option value="review">파일별 확인</option><option value="hold">보류</option></select>
+   <small id="asset-catalog-count" aria-live="polite"></small>
+ </div>
+ <div id="asset-catalog-results" class="catalog-results" aria-live="polite"></div>
+ <p id="asset-catalog-selected" class="catalog-selected" role="status">이용하려는 출처를 선택한 뒤 공식 사이트에서 원본 파일을 직접 받아 주세요.</p>
+ <p class="factory-note">목록은 2026-10-26 조사 스냅샷입니다. 최신 약관·파일별 사용권·에셋 단독 재배포권을 다시 확인하세요. 외부 사이트에서 자동으로 다운로드하지 않습니다.</p>
+</details>
  <label for="factory-file">GLB / PNG 원본 파일</label><input id="factory-file" type="file" accept=".glb,.png" />
  <label for="factory-manifest">Factory 내보내기 메타데이터 JSON</label><input id="factory-manifest" type="file" accept=".json" />
  <button id="factory-import" type="button" disabled>바이트 검증 후 등록</button>
+ <label class="catalog-consent"><input id="factory-rights-ack" type="checkbox" />이 파일에 적용되는 라이선스를 직접 확인했습니다. (자동 권리 검증 아님)</label>
+ <button id="factory-local-import" type="button" disabled>로컬 SHA·구조 검사 후 등록</button>
+ <p id="factory-local-status" class="factory-note" aria-live="polite">위 버튼은 로컬 파일에서 자체 확인용 Factory 형식 메타데이터를 생성합니다. 공식 MCP 검수 결과가 아닙니다. 기존 Factory JSON을 보유했다면 위 '바이트 검증 후 등록'을 사용하세요.</p>
  <div class="factory-note">Factory 공식 MCP는 메타데이터만 검수합니다. 파일 원본은 Studio의 로컬 세션에서만 확인하며, 권리·게임 렌더링 검증은 별도로 필요합니다. SVG는 자동 배치하지 않습니다.</div>
  <div id="factory-assets" aria-live="polite"></div>
 </section><div class="foot-note">데스크톱: 오브젝트를 화면에 드래그해 배치. 모바일: 추가 버튼을 누른 후 화면을 터치하세요.</div></aside>

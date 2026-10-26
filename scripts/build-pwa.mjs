@@ -4,7 +4,7 @@ import {deflateSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 const root=resolve(import.meta.dirname,'..'),dist=join(root,'dist');
 await mkdir(dist,{recursive:true});
-for(const name of ['studio.css','studio.js','index.html','interaction.mjs','model-viewport.mjs','glb-contract.mjs','factory-panel.mjs'])
+for(const name of ['studio.css','studio.js','index.html','interaction.mjs','model-viewport.mjs','glb-contract.mjs','factory-panel.mjs','asset-catalog.mjs','asset-catalog-data.mjs'])
  await copyFile(join(root,'web',name),join(dist,name));
 await cp(join(root,'compat/inha-editor'),join(dist,'compat/inha-editor'),{recursive:true});
 await cp(join(root,'pwa'),join(dist,'pwa'),{recursive:true});
@@ -68,7 +68,7 @@ function png(size){
 }
 await mkdir(join(dist,'icons'),{recursive:true});
 for(const size of [192,512])await writeFile(join(dist,'icons','icon-'+size+'.png'),png(size));
-const files=['/','/index.html','/studio.css','/studio.js','/factory-panel.mjs','/interaction.mjs','/model-viewport.mjs','/glb-contract.mjs','/vendor/playcanvas.mjs','/command-schema.mjs','/pwa/bootstrap.mjs','/pwa/browser-api.mjs','/pwa/zip.mjs','/pwa/mobile.css','/manifest.webmanifest','/icon.svg','/icons/icon-192.png','/icons/icon-512.png',
+const files=['/','/index.html','/studio.css','/studio.js','/factory-panel.mjs','/asset-catalog.mjs','/asset-catalog-data.mjs','/interaction.mjs','/model-viewport.mjs','/glb-contract.mjs','/vendor/playcanvas.mjs','/command-schema.mjs','/pwa/bootstrap.mjs','/pwa/browser-api.mjs','/pwa/zip.mjs','/pwa/mobile.css','/manifest.webmanifest','/icon.svg','/icons/icon-192.png','/icons/icon-512.png',
  ...['world-document.js','world-schema.js','world-serialization.js','editor-commands.js','building-mass.js','path-spline.js','map-reference.js'].map(f=>'/compat/inha-editor/'+f)];
 const checksum=createHash('sha256');
 for(const file of files.filter(item=>item!=='/'))checksum.update(await readFile(join(dist,file.slice(1))));
