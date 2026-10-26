@@ -32,6 +32,37 @@ Mobile Studio editing includes primitive scene objects, move/rotate/scale gestur
 
 The motion tool names are `motion_library`, `motion_validate`, `motion_import`, `motion_retarget`, `motion_blend`, and `motion_export`. Only `motion_import` and `motion_retarget` mutate the in-memory library, and they are available only through the write-enabled **local stdio** server.
 
+## Free asset source catalog (candidate, not production adoption)
+
+The **Asset Factory → 무료 에셋 탐색** panel lists nine curated providers
+(Kenney, Poly Haven, ambientCG, KayKit Adventurers, Poly Pizza, Sketchfab,
+itch.io, Fab, Quaternius), based on NARU's 2026-10-26 v2.1 survey and
+ION/MOA/ARK cross-checks. Filter CC0 source/pack evidence, item-by-item review,
+or license conflict/HOLD.
+
+Use the official site to obtain the file yourself and read its individual
+license. Neither the catalog nor the Studio downloads third-party assets,
+scrapes those sites, or verifies current permissions. The source list is a
+research snapshot, not blanket clearance. Quaternius stays HOLD for
+CC0-versus-QAL conflict; Fab and Poly Pizza are not blanket CC0.
+
+After choosing a local GLB/PNG, acknowledge the file-specific license before
+clicking **로컬 SHA·구조 검사 후 등록**. The browser computes SHA-256 and generates
+a self-declared Factory-shaped inventory with **status UNKNOWN**; the existing
+Studio importer independently validates the hash and supported GLB/PNG profile.
+Content integrity may be PASS while rights, visual QA, hardware QA and game
+rendering remain UNKNOWN. This is not remote MCP verification. The original
+**바이트 검증 후 등록** still accepts a separately prepared Factory JSON.
+Catalog selection is UI guidance only and is not stored as asset provenance.
+
+The linked Asset Factory Sites adapter 0.2.1 remains read-only and metadata-only:
+no file uploads, storage, asset conversion or rights certification. PWA imports
+remain device-local. Backup/export rules still apply.
+
+The check/test scripts include catalog unit tests, and the existing CI
+browser job runs PWA smoke tests for filters, local PNG integrity import,
+persistence and offline reload without adding another CI job.
+
 ## Get started (Node.js 20+)
 
 ```sh
