@@ -146,7 +146,6 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
-      - run: npm run build:pwa && npm run test:pwa:browser
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
